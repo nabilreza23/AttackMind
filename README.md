@@ -19,7 +19,8 @@ AttackMind is a modern Security Recon tool designed for bug bounty hunters and p
 ```bash
 git clone https://github.com/nabilreza23/AttackMind.git
 cd AttackMind
-pip install -r requirements.txt
+pip install -r requirements.txt 
+```
 
 
 ## 🚀 Usage
