@@ -27,3 +27,16 @@ pip install -r requirements.txt
 
 ```bash
 python attackmind.py -t example.com
+```
+
+## 2. Recon Scan with OpenAI GPT-4 Analysis
+
+```bash
+python attackmind.py -t example.com --openai YOUR_OPENAI_API_KEY
+```
+
+## 3. Recon Scan with Local LLM (Ollama)
+
+```bash
+python attackmind.py -t example.com --ollama llama3
+```
