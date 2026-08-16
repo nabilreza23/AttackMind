@@ -40,3 +40,6 @@ python attackmind.py -t example.com --openai YOUR_OPENAI_API_KEY
 ```bash
 python attackmind.py -t example.com --ollama llama3
 ```
+
+## ⚠️ Disclaimer
+This tool is built for educational and authorized security testing purposes only. Do not test targets without explicit authorization.
