@@ -38,21 +38,21 @@ pip install --no-build-isolation -r requirements.txt
 
 ## 🚀 Usage
 
-### ​1. Basic Recon Scan (Without AI)
+#### ​1. Basic Recon Scan (Without AI)
 ```bash
 python attackmind.py -t example.com
 ```
-### 2. Recon Scan with OpenAI GPT-4 Analysis
+#### 2. Recon Scan with OpenAI GPT-4 Analysis
 ```bash
 python attackmind.py -t example.com --openai YOUR_OPENAI_API_KEY
 ```
-### 3. Recon Scan with Local LLM (Ollama)
+#### 3. Recon Scan with Local LLM (Ollama)
 ```bash
 python attackmind.py -t example.com --ollama llama3
 ```
 
-#### 🤝 Contributing
+## 🤝 Contributing
 ​Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
 ​
-# ⚠️ Disclaimer
+## ⚠️ Disclaimer
 ​This tool is built for educational and authorized security testing purposes only. Do not test targets without explicit authorization.
