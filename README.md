@@ -32,7 +32,7 @@ pkg update -y
 pkg install git python clang make -y
 git clone https://github.com/nabilreza23/AttackMind.git
 cd AttackMind
-pip install requests beautifulsoup4 rich
+pip install requests beautifulsoup4 rich pydantic httpx anyio
 pip install --no-deps openai
 ```
 
