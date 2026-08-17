@@ -28,9 +28,11 @@ pip install -r requirements.txt
 ```
 ### 📱 Termux / Mobile Users
 ```bash
-pkg update -y && pkg install git python python-pydantic python-rich python-requests python-bs4 -y
+pkg update -y
+pkg install git python clang make -y
 git clone https://github.com/nabilreza23/AttackMind.git
 cd AttackMind
+pip install requests beautifulsoup4 rich
 pip install --no-deps openai
 ```
 
