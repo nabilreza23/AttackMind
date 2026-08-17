@@ -29,6 +29,22 @@ SECRET_PATTERNS = {
 def get_utc_time():
     return datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S UTC")
 
+def fetch_wayback_params(target_domain):
+    urls_with_params = set()
+    try:
+        wayback_url = f"http://web.archive.org/cdx/search/cdx?url=*.{target_domain}/*&output=json&fl=original&collapse=urlkey"
+        res = requests.get(wayback_url, timeout=8, headers={"User-Agent": "AttackMind-Recon/1.0"})
+        if res.status_code == 200:
+            data = res.json()
+            if len(data) > 1:
+                for item in data[1:]:
+                    url = item[0]
+                    if "?" in url and "=" in url:
+                        urls_with_params.add(url)
+    except Exception:
+        pass
+    return list(urls_with_params)
+
 def scan_js_for_secrets_and_params(js_files, target_domain):
     found_secrets = []
     discovered_js_params = set()
@@ -97,7 +113,7 @@ def extract_recon_data(target_url):
             TextColumn("[progress.description]{task.description}"),
             transient=True
         ) as progress:
-            progress.add_task(description="Fetching target HTML, JS & Endpoints...", total=None)
+            progress.add_task(description="Fetching HTML, Scanning Sub-pages & Wayback Archive...", total=None)
             response = requests.get(target_url, timeout=10, headers={"User-Agent": "AttackMind-Recon/1.0"})
             
             for k, v in list(response.headers.items())[:6]:
@@ -110,6 +126,7 @@ def extract_recon_data(target_url):
                 if js_url not in js_files:
                     js_files.append(js_url)
 
+            internal_links = set()
             for a in soup.find_all('a', href=True):
                 href = a['href']
                 full_url = urljoin(target_url, href)
@@ -118,6 +135,7 @@ def extract_recon_data(target_url):
 
                 if target_domain in parsed_domain:
                     endpoints.add(parsed.path)
+                    internal_links.add(full_url)
                     if parsed.query:
                         param_urls.add(full_url)
                         query_params = parse_qs(parsed.query)
@@ -138,6 +156,30 @@ def extract_recon_data(target_url):
                     param_urls.add(form_param_url)
                     for i in inputs:
                         unique_params.add(i)
+
+            for sub_link in list(internal_links)[:8]:
+                try:
+                    sub_res = requests.get(sub_link, timeout=4, headers={"User-Agent": "AttackMind-Recon/1.0"})
+                    sub_soup = BeautifulSoup(sub_res.text, 'html.parser')
+                    for form in sub_soup.find_all('form'):
+                        action = form.get('action', '')
+                        form_url = urljoin(sub_link, action)
+                        inputs = [inp.get('name') for inp in sub_soup.find_all(['input', 'textarea', 'select']) if inp.get('name')]
+                        if inputs:
+                            param_str = "&".join([f"{i}=TEST" for i in inputs])
+                            param_urls.add(f"{form_url}?{param_str}")
+                            for i in inputs:
+                                unique_params.add(i)
+                except Exception:
+                    continue
+
+            wayback_urls = fetch_wayback_params(target_domain)
+            for w_url in wayback_urls:
+                param_urls.add(w_url)
+                parsed_w = urlparse(w_url)
+                query_params = parse_qs(parsed_w.query)
+                for p in query_params.keys():
+                    unique_params.add(p)
 
     except Exception as e:
         console.print(f"[bold red][!] Target unreachable:[/bold red] {e}")
@@ -190,13 +232,13 @@ def display_results(headers, js_files, endpoints, param_urls, unique_params, sec
         console.print()
 
     if param_urls:
-        param_url_table = Table(title="Extracted Target Parameters & Forms (Ready for Testing)", show_header=True, header_style="bold yellow")
+        param_url_table = Table(title="Extracted Target Parameters & Endpoints (Ready for Testing)", show_header=True, header_style="bold yellow")
         param_url_table.add_column("#", style="dim", width=4)
         param_url_table.add_column("Target Endpoint & Parameters", style="green")
-        for idx, p_url in enumerate(param_urls[:20], 1):
+        for idx, p_url in enumerate(param_urls[:25], 1):
             param_url_table.add_row(str(idx), p_url)
-        if len(param_urls) > 20:
-            param_url_table.add_row("...", f"and {len(param_urls) - 20} more endpoints")
+        if len(param_urls) > 25:
+            param_url_table.add_row("...", f"and {len(param_urls) - 25} more endpoints")
         console.print(param_url_table)
         console.print()
 
