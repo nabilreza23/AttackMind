@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from openai import OpenAI
 
 console = Console()
 
@@ -18,8 +19,61 @@ BANNER = """[bold cyan]
       AI-Powered Recon & Attack Surface Analyzer
 [/bold cyan]"""
 
+# Regex patterns for high-value secrets inside JS files
+SECRET_PATTERNS = {
+    "Google API Key": r'AIzaSy[A-Za-z0-9_-]{35}',
+    "AWS Access Key": r'AKIA[0-9A-Z]{16}',
+    "Bearer Token": r'bearer\s+[A-Za-z0-9\-\._~\+\/]+=*',
+    "Generic Secret/Token": r'(?i)(api[_-]?key|secret|token|auth)\s*[:=]\s*["\']([A-Za-z0-9_\-]{16,})["\']'
+}
+
 def get_utc_time():
     return datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S UTC")
+
+def scan_js_for_secrets(js_files):
+    found_secrets = []
+    headers = {"User-Agent": "AttackMind-Recon/1.0"}
+    
+    # Scanning top 10 JS files to keep it fast
+    for js_url in js_files[:10]:
+        try:
+            res = requests.get(js_url, timeout=5, headers=headers)
+            if res.status_code == 200:
+                for secret_type, pattern in SECRET_PATTERNS.items():
+                    matches = re.findall(pattern, res.text)
+                    for match in matches:
+                        secret_val = match if isinstance(match, str) else match[1]
+                        found_secrets.append((secret_type, secret_val[:25] + "...", js_url))
+        except Exception:
+            continue
+    return found_secrets
+
+def run_ai_analysis(api_key, target_url, headers, parameters):
+    if not api_key:
+        return "[yellow]AI analysis skipped. Set OPENAI_API_KEY environment variable or pass --api-key to enable AI Security Insights.[/yellow]"
+    
+    try:
+        client = OpenAI(api_key=api_key)
+        prompt = f"""
+As an expert offensive security analyzer, review the following recon data for target: {target_url}
+
+Headers: {headers}
+Extracted Parameters: {parameters}
+
+Provide a concise security report highlighting:
+1. Potential vulnerability vectors (e.g., SQLi, XSS, IDOR) based on parameters.
+2. Missing security headers.
+3. Recommended manual test cases for a bug bounty assessment.
+Keep it bulleted, technical, and actionable.
+"""
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=400
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"[red]AI Analysis Failed:[/red] {str(e)}"
 
 def extract_recon_data(target_url):
     console.print(f"\n[bold green][+] Target Loaded:[/bold green] {target_url}")
@@ -36,7 +90,7 @@ def extract_recon_data(target_url):
             TextColumn("[progress.description]{task.description}"),
             transient=True
         ) as progress:
-            progress.add_task(description="Fetching target HTML & Headers...", total=None)
+            progress.add_task(description="Fetching target HTML, JS & Headers...", total=None)
             response = requests.get(target_url, timeout=10, headers={"User-Agent": "AttackMind-Recon/1.0"})
             
             for k, v in list(response.headers.items())[:6]:
@@ -66,7 +120,7 @@ def extract_recon_data(target_url):
 
     return headers_summary, js_files, list(endpoints), list(parameters)
 
-def display_results(headers, js_files, endpoints, parameters):
+def display_results(headers, js_files, endpoints, parameters, secrets, ai_report):
     if headers:
         header_table = Table(title="Target Header Snapshot", show_header=True, header_style="bold magenta")
         header_table.add_column("Header Name", style="cyan")
@@ -80,9 +134,20 @@ def display_results(headers, js_files, endpoints, parameters):
 [bold yellow]JS Files Found:[/bold yellow] {len(js_files)}
 [bold yellow]Endpoints Discovered:[/bold yellow] {len(endpoints)}
 [bold yellow]Parameters Extracted:[/bold yellow] {len(parameters)}
+[bold red]Secrets Discovered:[/bold red] {len(secrets)}
 """
     console.print(Panel(summary_panel.strip(), title="Recon Summary", border_style="green"))
     console.print()
+
+    if secrets:
+        secret_table = Table(title="🚨 Exposed Secrets in JS Files", show_header=True, header_style="bold red")
+        secret_table.add_column("Type", style="yellow")
+        secret_table.add_column("Snippet", style="red")
+        secret_table.add_column("Source JS", style="dim")
+        for s_type, s_val, s_src in secrets:
+            secret_table.add_row(s_type, s_val, s_src)
+        console.print(secret_table)
+        console.print()
 
     if js_files:
         js_table = Table(title="Discovered JS Files", show_header=True, header_style="bold blue")
@@ -106,14 +171,24 @@ def display_results(headers, js_files, endpoints, parameters):
         console.print(param_table)
         console.print()
 
+    if ai_report:
+        console.print(Panel(ai_report, title="🤖 AI Security Assessment", border_style="bold cyan"))
+
 def main():
     parser = argparse.ArgumentParser(description="AttackMind - AI Recon Tool")
     parser.add_argument("-t", "--target", required=True, help="Target URL (e.g. https://example.com)")
+    parser.add_argument("--api-key", help="OpenAI API Key for AI Analysis")
     args = parser.parse_args()
 
     console.print(BANNER)
     headers, js_files, endpoints, parameters = extract_recon_data(args.target)
-    display_results(headers, js_files, endpoints, parameters)
+    
+    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
+        progress.add_task(description="Scanning JS files for API Keys & Secrets...", total=None)
+        secrets = scan_js_for_secrets(js_files)
+
+    ai_report = run_ai_analysis(args.api_key, args.target, headers, parameters)
+    display_results(headers, js_files, endpoints, parameters, secrets, ai_report)
 
 if __name__ == "__main__":
     main()
