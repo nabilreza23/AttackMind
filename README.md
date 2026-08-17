@@ -32,7 +32,7 @@ pkg update -y
 pkg install git python -y
 git clone https://github.com/nabilreza23/AttackMind.git
 cd AttackMind
-pip install requests beautifulsoup4 rich "pydantic<2" httpx anyio distro sniffio tqdm
+pip install requests beautifulsoup4 rich "pydantic<2" httpx httpx2 anyio distro sniffio tqdm
 pip install --no-deps openai
 ```
 
