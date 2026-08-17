@@ -53,7 +53,11 @@ python attackmind.py -t https://example.com --all-js
 ```bash
 python attackmind.py -t https://example.com --api-key "your-openai-api-key"
 ```
-
+#### Or export your API key in your environment first:
+```bash
+export OPENAI_API_KEY="your-openai-api-key"
+python attackmind.py -t https://example.com
+```
 
 
 
