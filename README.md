@@ -35,3 +35,11 @@ cd AttackMind
 pip install --upgrade pip setuptools wheel
 pip install --no-build-isolation -r requirements.txt
 ```
+
+## 🚀 Usage
+
+### ​1. Basic Recon Scan (Without AI)
+```bash
+python attackmind.py -t example.com
+```
+
