@@ -14,6 +14,15 @@ AttackMind is a modern Security Recon tool designed for bug bounty hunters and p
 
 ---
 
+## 📱 Termux Users
+If you are running this on Termux, please ensure you have the build tools installed before running `pip install`:
+
+```bash
+pkg update && pkg upgrade
+pkg install rust clang make python-dev
+pip install -r requirements.txt
+```
+
 ## 🛠️ Installation
 
 ```bash
