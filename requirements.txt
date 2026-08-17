@@ -1,3 +1,4 @@
+maturin
 requests
 beautifulsoup4
 rich
