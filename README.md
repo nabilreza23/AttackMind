@@ -28,11 +28,10 @@ pip install -r requirements.txt
 ```
 ### 📱 Termux / Mobile Users
 ```bash
-pkg update -y
-pkg install git rust clang make python tur-repo maturin -y
-git clone https://github.com/nabilreza23/AttackMind.git
+pkg update -y && pkg install git python -y
+git clone [https://github.com/nabilreza23/AttackMind.git](https://github.com/nabilreza23/AttackMind.git)
 cd AttackMind
-pip install -r requirements.txt
+pip install requests beautifulsoup4 rich "openai<1.40.0"
 ```
 
 ## 🚀 Usage
