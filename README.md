@@ -43,6 +43,21 @@ Run a quick scan to discover endpoints, JS files, and parameterized URLs:
 ```bash
 python attackmind.py -t https://example.com
 ```
+#### 2. View All Discovered JS Files
+​By default, the tool displays the top 15 JS files. To show all JS files found:
+```bash
+python attackmind.py -t https://example.com --all-js
+```
+#### 3. Run with AI Security Assessment (OpenAI)
+​Pass your OpenAI API key to generate an automated AI threat report for vulnerabilities like SQLi, XSS, and IDOR:
+```bash
+python attackmind.py -t https://example.com --api-key "your-openai-api-key"
+```
+
+
+
+
+
 
 ## 🤝 Contributing
 ​Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
