@@ -38,17 +38,10 @@ pip install --no-deps openai
 
 ## 🚀 Usage
 
-#### ​1. Basic Recon Scan (Without AI)
+#### 1. Basic Recon Scan
+Run a quick scan to discover endpoints, JS files, and parameterized URLs:
 ```bash
-python attackmind.py -t example.com
-```
-#### 2. Recon Scan with OpenAI GPT-4 Analysis
-```bash
-python attackmind.py -t example.com --openai YOUR_OPENAI_API_KEY
-```
-#### 3. Recon Scan with Local LLM (Ollama)
-```bash
-python attackmind.py -t example.com --ollama llama3
+python attackmind.py -t https://example.com
 ```
 
 ## 🤝 Contributing
