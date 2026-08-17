@@ -18,12 +18,13 @@ AttackMind is a modern Security Recon tool designed for bug bounty hunters and p
 
 ### Standard (Linux / Mac / Windows)
 ```bash
-git clone [https://github.com/nabilreza23/AttackMind.git](https://github.com/nabilreza23/AttackMind.git)
+git clone https://github.com/nabilreza23/AttackMind.git
 cd AttackMind
 pip install -r requirements.txt
 ```
 
-##📱 Termux Users
+###📱 Termux Users:
+
 ​Termux requires C/Rust build tools to build OpenAI dependencies. Run these commands first:
 ```bash
 pkg update && pkg upgrade
@@ -33,7 +34,7 @@ pip install -r requirements.txt
 ```
 
 ### Note for Termux: If pip install hangs at building wheel for jiter or openai, run:
-pip install --no-build-isolation openai
+`pip install --no-build-isolation openai`
 
 
 ## 🚀 Usage
