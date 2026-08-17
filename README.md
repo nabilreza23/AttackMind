@@ -23,7 +23,7 @@ cd AttackMind
 pip install -r requirements.txt
 ```
 
-###📱 Termux Users:
+### 📱 Termux Users:
 
 ​Termux requires C/Rust build tools to build OpenAI dependencies. Run these commands first:
 ```bash
@@ -33,7 +33,8 @@ pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
 ```
 
-### Note for Termux: If pip install hangs at building wheel for jiter or openai, run:
+### Note for Termux: 
+If pip install hangs at building wheel for jiter or openai, run:
 `pip install --no-build-isolation openai`
 
 
