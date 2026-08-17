@@ -32,8 +32,8 @@ pkg update -y
 pkg install git rust clang make python -y
 git clone https://github.com/nabilreza23/AttackMind.git
 cd AttackMind
-pip install --upgrade pip setuptools wheel
-pip install --no-build-isolation -r requirements.txt
+pip install maturin
+pip install -r requirements.txt
 ```
 
 ## 🚀 Usage
