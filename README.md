@@ -23,13 +23,13 @@ AttackMind is a modern Security Recon tool designed for bug bounty hunters and p
 ### 💻 PC / Laptop (Linux, Mac, Windows)
 ```bash
 git clone https://github.com/nabilreza23/AttackMind.git
-cd AttackMind
+cd  AttackMin
 pip install -r requirements.txt
 ```
 ### 📱 Termux / Mobile Users
 ```bash
 pkg update -y && pkg install git python -y
-git clone [https://github.com/nabilreza23/AttackMind.git](https://github.com/nabilreza23/AttackMind.git)
+git clone https://github.com/nabilreza23/AttackMind.git
 cd AttackMind
 pip install requests beautifulsoup4 rich "openai<1.40.0"
 ```
