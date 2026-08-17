@@ -29,11 +29,12 @@ SECRET_PATTERNS = {
 def get_utc_time():
     return datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S UTC")
 
-def scan_js_for_secrets(js_files):
+def scan_js_for_secrets_and_params(js_files, target_domain):
     found_secrets = []
+    discovered_js_params = set()
     headers = {"User-Agent": "AttackMind-Recon/1.0"}
     
-    for js_url in js_files[:10]:
+    for js_url in js_files[:15]:
         try:
             res = requests.get(js_url, timeout=5, headers=headers)
             if res.status_code == 200:
@@ -42,9 +43,14 @@ def scan_js_for_secrets(js_files):
                     for match in matches:
                         secret_val = match if isinstance(match, str) else match[1]
                         found_secrets.append((secret_type, secret_val[:25] + "...", js_url))
+                
+                endpoints_in_js = re.findall(r'["\'](/(?:[a-zA-Z0-9_.\-]+/)*[a-zA-Z0-9_.\-]+\?[a-zA-Z0-9_&=.\-]+)["\']', res.text)
+                for ep in endpoints_in_js:
+                    full_endpoint = f"https://{target_domain}{ep}"
+                    discovered_js_params.add(full_endpoint)
         except Exception:
             continue
-    return found_secrets
+    return found_secrets, list(discovered_js_params)
 
 def run_ai_analysis(api_key, target_url, headers, param_urls):
     if not api_key:
@@ -83,6 +89,8 @@ def extract_recon_data(target_url):
     param_urls = set()
     unique_params = set()
 
+    target_domain = urlparse(target_url).netloc.replace('www.', '')
+
     try:
         with Progress(
             SpinnerColumn(),
@@ -105,22 +113,37 @@ def extract_recon_data(target_url):
             for a in soup.find_all('a', href=True):
                 href = a['href']
                 full_url = urljoin(target_url, href)
-                
-                if full_url.startswith('http'):
-                    parsed = urlparse(full_url)
+                parsed = urlparse(full_url)
+                parsed_domain = parsed.netloc.replace('www.', '')
+
+                if target_domain in parsed_domain:
                     endpoints.add(parsed.path)
-                    
                     if parsed.query:
                         param_urls.add(full_url)
                         query_params = parse_qs(parsed.query)
                         for p in query_params.keys():
                             unique_params.add(p)
 
+            for form in soup.find_all('form'):
+                action = form.get('action', '')
+                form_url = urljoin(target_url, action)
+                inputs = [inp.get('name') for inp in form.find_all(['input', 'textarea', 'select']) if inp.get('name')]
+                if inputs:
+                    method = form.get('method', 'GET').upper()
+                    param_str = "&".join([f"{i}=TEST" for i in inputs])
+                    if method == "GET":
+                        form_param_url = f"{form_url}?{param_str}"
+                    else:
+                        form_param_url = f"{form_url} [POST: {', '.join(inputs)}]"
+                    param_urls.add(form_param_url)
+                    for i in inputs:
+                        unique_params.add(i)
+
     except Exception as e:
         console.print(f"[bold red][!] Target unreachable:[/bold red] {e}")
         sys.exit(1)
 
-    return headers_summary, js_files, list(endpoints), list(param_urls), list(unique_params)
+    return headers_summary, js_files, list(endpoints), list(param_urls), list(unique_params), target_domain
 
 def display_results(headers, js_files, endpoints, param_urls, unique_params, secrets, ai_report, show_all_js):
     if headers:
@@ -135,7 +158,7 @@ def display_results(headers, js_files, endpoints, param_urls, unique_params, sec
     summary_panel = f"""
 [bold yellow]JS Files Found:[/bold yellow] {len(js_files)}
 [bold yellow]Endpoints Discovered:[/bold yellow] {len(endpoints)}
-[bold yellow]Parameterized URLs Found:[/bold yellow] {len(param_urls)}
+[bold yellow]Target Parameterized Endpoints/Forms:[/bold yellow] {len(param_urls)}
 [bold yellow]Unique Parameters Extracted:[/bold yellow] {len(unique_params)}
 [bold red]Secrets Discovered:[/bold red] {len(secrets)}
 """
@@ -167,13 +190,13 @@ def display_results(headers, js_files, endpoints, param_urls, unique_params, sec
         console.print()
 
     if param_urls:
-        param_url_table = Table(title="Extracted Parameterized URLs (Ready for Testing)", show_header=True, header_style="bold yellow")
+        param_url_table = Table(title="Extracted Target Parameters & Forms (Ready for Testing)", show_header=True, header_style="bold yellow")
         param_url_table.add_column("#", style="dim", width=4)
-        param_url_table.add_column("URL Endpoint with Parameters", style="green")
-        for idx, p_url in enumerate(param_urls[:15], 1):
+        param_url_table.add_column("Target Endpoint & Parameters", style="green")
+        for idx, p_url in enumerate(param_urls[:20], 1):
             param_url_table.add_row(str(idx), p_url)
-        if len(param_urls) > 15:
-            param_url_table.add_row("...", f"and {len(param_urls) - 15} more URLs")
+        if len(param_urls) > 20:
+            param_url_table.add_row("...", f"and {len(param_urls) - 20} more endpoints")
         console.print(param_url_table)
         console.print()
 
@@ -188,14 +211,18 @@ def main():
     args = parser.parse_args()
 
     console.print(BANNER)
-    headers, js_files, endpoints, param_urls, unique_params = extract_recon_data(args.target)
+    headers, js_files, endpoints, param_urls, unique_params, target_domain = extract_recon_data(args.target)
     
     with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
-        progress.add_task(description="Scanning JS files for API Keys & Secrets...", total=None)
-        secrets = scan_js_for_secrets(js_files)
+        progress.add_task(description="Scanning JS files for API Keys & Hidden Endpoints...", total=None)
+        secrets, js_param_urls = scan_js_for_secrets_and_params(js_files, target_domain)
+        
+    for jpu in js_param_urls:
+        if jpu not in param_urls:
+            param_urls.append(jpu)
 
     ai_report = run_ai_analysis(args.api_key, args.target, headers, param_urls)
-    display_results(headers, js_files, endpoints, param_urls, unique_params, secrets, ai_report, args.all_js)
+    display_results(headers, js_files, endpoints, param_urls, unique_params, secrets, ai_report, getattr(args, 'all_js', False))
 
 if __name__ == "__main__":
     main()
