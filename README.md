@@ -51,7 +51,7 @@ python attackmind.py -t example.com --openai YOUR_OPENAI_API_KEY
 python attackmind.py -t example.com --ollama llama3
 ```
 
-# 🤝 Contributing
+#### 🤝 Contributing
 ​Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
 ​
 # ⚠️ Disclaimer
