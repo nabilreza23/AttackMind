@@ -3,7 +3,7 @@ import re
 import argparse
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 from datetime import datetime, timezone
 from rich.console import Console
 from rich.panel import Panel
@@ -82,6 +82,7 @@ def display_results(headers, js_files, endpoints, parameters):
 [bold yellow]Parameters Extracted:[/bold yellow] {len(parameters)}
 """
     console.print(Panel(summary_panel.strip(), title="Recon Summary", border_style="green"))
+    console.print()
 
     if js_files:
         js_table = Table(title="Discovered JS Files", show_header=True, header_style="bold blue")
