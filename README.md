@@ -29,10 +29,9 @@ pip install -r requirements.txt
 ### 📱 Termux / Mobile Users
 ```bash
 pkg update -y
-pkg install git rust clang make python -y
+pkg install git rust clang make python tur-repo maturin -y
 git clone https://github.com/nabilreza23/AttackMind.git
 cd AttackMind
-pip install maturin
 pip install -r requirements.txt
 ```
 
