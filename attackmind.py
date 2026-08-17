@@ -195,6 +195,7 @@ def main():
         secrets = scan_js_for_secrets(js_files)
 
     ai_report = run_ai_analysis(args.api_key, args.target, headers, param_urls)
-   display_results(headers, js_files, endpoints, param_urls, unique_params, secrets, ai_report, getattr(args, 'all_js', False))
+    display_results(headers, js_files, endpoints, param_urls, unique_params, secrets, ai_report, args.all_js)
+
 if __name__ == "__main__":
     main()
