@@ -47,3 +47,10 @@ python attackmind.py -t https://target.com --api-key "YOUR_KEY"
 ```bash
 python attackmind.py -t https://target.com --all-js
 ```
+
+## 🔥 Features
+
+**🔍 Crawls forms, JS endpoints & Wayback archives for params (SQLi, XSS, IDOR).**
+
+​**🔑 Regex scans JS files for leaked API keys, tokens & credentials.**
+​**🤖 Auto security analysis via Google Gemini AI.**
