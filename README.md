@@ -16,11 +16,11 @@ Fast, zero-fluff offensive recon tool. Extracts endpoints, hidden parameters, JS
 ```bash
 pkg update && pkg upgrade -y
 pkg install python git -y
+rm -rf AttackMind
 git clone https://github.com/nabilreza23/AttackMind.git
 cd AttackMind
 pip install -r requirements.txt
 ```
-
 
 
 ### 💻 PC (Linux / Windows)
