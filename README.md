@@ -1,26 +1,22 @@
-# AttackMind 🎯
-**AI-Powered Recon & Attack Surface Analyzer**
+# 🎯 AttackMind
+> **AI-Powered Recon & Attack Surface Analyzer**
 
-AttackMind is a fast, dependency-free Python tool designed for offensive security researchers and bug bounty hunters. It crawls target domains, extracts JS files, parses internal parameters & endpoints (via HTML, forms, and Wayback Machine archives), scans for exposed secrets, and leverages **Google Gemini AI** to provide actionable security assessments.
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue?style=for-the-badge&logo=python)
+![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Termux%20%7C%20Windows-lightgrey?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+![AI](https://img.shields.io/badge/AI-Google%20Gemini-orange?style=for-the-badge&logo=google)
 
----
-
-## ✨ Features
-- 🔍 **Target Header Inspection**: Swift analysis of HTTP response headers.
-- 📜 **JavaScript Discovery**: Scans and lists internal JS files and scripts.
-- 🔑 **Secrets Extraction**: Regex-based detection for Google API Keys, AWS Keys, Bearer Tokens, and generic secrets inside JS files.
-- 🎯 **Parameter & Form Extraction**: Captures internal GET/POST parameters using internal page crawling and Wayback Archive integration.
-- 🤖 **Gemini AI Security Insights**: Evaluates extracted data using **Google Gemini AI** to highlight potential attack vectors (SQLi, XSS, IDOR) and missing security controls.
+Fast, zero-fluff offensive recon tool. Extracts endpoints, hidden parameters, JS secrets, and feeds them to **Gemini AI** for instant vulnerability analysis.
 
 ---
 
-## 🚀 Installation & Setup
+## ⚡ Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/nabilreza23/AttackMind.git
-   cd AttackMind
-   ```
-
-
-   
+### 📱 Android (Termux)
+```bash
+pkg update && pkg upgrade -y
+pkg install python git -y
+git clone https://github.com/nabilreza23/AttackMind.git
+cd AttackMind
+pip install -r requirements.txt
+```
