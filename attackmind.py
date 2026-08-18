@@ -72,7 +72,7 @@ def run_ai_analysis(api_key, target_url, headers, param_urls):
         return "[yellow]AI analysis skipped. Set GEMINI_API_KEY environment variable or pass --api-key to enable Gemini Security Insights.[/yellow]"
     
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
         
         prompt_text = f"""As an expert offensive security analyzer, review the following recon data for target: {target_url}
 
@@ -254,6 +254,7 @@ def display_results(headers, js_files, endpoints, param_urls, unique_params, sec
         console.print(Panel(ai_report, title="🤖 Gemini AI Security Assessment", border_style="bold cyan"))
 
 def main():
+    import os
     parser = argparse.ArgumentParser(description="AttackMind - AI Recon Tool")
     parser.add_argument("-t", "--target", required=True, help="Target URL (e.g. https://example.com)")
     parser.add_argument("--api-key", help="Google Gemini API Key for AI Analysis")
@@ -271,7 +272,6 @@ def main():
         if jpu not in param_urls:
             param_urls.append(jpu)
 
-    import os
     api_key = args.api_key or os.getenv("GEMINI_API_KEY")
 
     ai_report = run_ai_analysis(api_key, args.target, headers, param_urls)
