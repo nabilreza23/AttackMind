@@ -9,7 +9,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from openai import OpenAI
 
 console = Console()
 
@@ -73,9 +72,13 @@ def run_ai_analysis(api_key, target_url, headers, param_urls):
         return "[yellow]AI analysis skipped. Set OPENAI_API_KEY environment variable or pass --api-key to enable AI Security Insights.[/yellow]"
     
     try:
-        client = OpenAI(api_key=api_key)
-        prompt = f"""
-As an expert offensive security analyzer, review the following recon data for target: {target_url}
+        url = "https://api.openai.com/v1/chat/completions"
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": f"""As an expert offensive security analyzer, review the following recon data for target: {target_url}
 
 Headers: {headers}
 Discovered Parameterized URLs: {param_urls[:15]}
@@ -84,14 +87,23 @@ Provide a concise security report highlighting:
 1. Potential vulnerability vectors (e.g., SQLi, XSS, IDOR) based on parameters and paths.
 2. Missing security headers.
 3. Recommended manual test cases for a bug bounty assessment.
-Keep it bulleted, technical, and actionable.
-"""
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=400
-        )
-        return response.choices[0].message.content
+Keep it bulleted, technical, and actionable."""
+                }
+            ],
+            "max_tokens": 400
+        }
+        req_headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        response = requests.post(url, json=payload, headers=req_headers, timeout=15)
+        if response.status_code == 200:
+            res_data = response.json()
+            return res_data["choices"][0]["message"]["content"]
+        else:
+            return f"[red]AI Analysis Failed (HTTP {response.status_code}):[/red] {response.text}"
+            
     except Exception as e:
         return f"[red]AI Analysis Failed:[/red] {str(e)}"
 
