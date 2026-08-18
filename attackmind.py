@@ -69,16 +69,12 @@ def scan_js_for_secrets_and_params(js_files, target_domain):
 
 def run_ai_analysis(api_key, target_url, headers, param_urls):
     if not api_key:
-        return "[yellow]AI analysis skipped. Set OPENAI_API_KEY environment variable or pass --api-key to enable AI Security Insights.[/yellow]"
+        return "[yellow]AI analysis skipped. Set GEMINI_API_KEY environment variable or pass --api-key to enable Gemini Security Insights.[/yellow]"
     
     try:
-        url = "https://api.openai.com/v1/chat/completions"
-        payload = {
-            "model": "gpt-4o-mini",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": f"""As an expert offensive security analyzer, review the following recon data for target: {target_url}
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        
+        prompt_text = f"""As an expert offensive security analyzer, review the following recon data for target: {target_url}
 
 Headers: {headers}
 Discovered Parameterized URLs: {param_urls[:15]}
@@ -88,24 +84,24 @@ Provide a concise security report highlighting:
 2. Missing security headers.
 3. Recommended manual test cases for a bug bounty assessment.
 Keep it bulleted, technical, and actionable."""
-                }
-            ],
-            "max_tokens": 400
-        }
-        req_headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
+
+        payload = {
+            "contents": [{
+                "parts": [{"text": prompt_text}]
+            }]
         }
         
+        req_headers = {"Content-Type": "application/json"}
         response = requests.post(url, json=payload, headers=req_headers, timeout=15)
+        
         if response.status_code == 200:
             res_data = response.json()
-            return res_data["choices"][0]["message"]["content"]
+            return res_data["candidates"][0]["content"]["parts"][0]["text"]
         else:
-            return f"[red]AI Analysis Failed (HTTP {response.status_code}):[/red] {response.text}"
+            return f"[red]Gemini AI Analysis Failed (HTTP {response.status_code}):[/red] {response.text}"
             
     except Exception as e:
-        return f"[red]AI Analysis Failed:[/red] {str(e)}"
+        return f"[red]Gemini AI Analysis Failed:[/red] {str(e)}"
 
 def extract_recon_data(target_url):
     console.print(f"\n[bold green][+] Target Loaded:[/bold green] {target_url}")
@@ -255,12 +251,12 @@ def display_results(headers, js_files, endpoints, param_urls, unique_params, sec
         console.print()
 
     if ai_report:
-        console.print(Panel(ai_report, title="🤖 AI Security Assessment", border_style="bold cyan"))
+        console.print(Panel(ai_report, title="🤖 Gemini AI Security Assessment", border_style="bold cyan"))
 
 def main():
     parser = argparse.ArgumentParser(description="AttackMind - AI Recon Tool")
     parser.add_argument("-t", "--target", required=True, help="Target URL (e.g. https://example.com)")
-    parser.add_argument("--api-key", help="OpenAI API Key for AI Analysis")
+    parser.add_argument("--api-key", help="Google Gemini API Key for AI Analysis")
     parser.add_argument("--all-js", action="store_true", help="Display all discovered JS files without limit")
     args = parser.parse_args()
 
@@ -275,7 +271,10 @@ def main():
         if jpu not in param_urls:
             param_urls.append(jpu)
 
-    ai_report = run_ai_analysis(args.api_key, args.target, headers, param_urls)
+    import os
+    api_key = args.api_key or os.getenv("GEMINI_API_KEY")
+
+    ai_report = run_ai_analysis(api_key, args.target, headers, param_urls)
     display_results(headers, js_files, endpoints, param_urls, unique_params, secrets, ai_report, getattr(args, 'all_js', False))
 
 if __name__ == "__main__":
