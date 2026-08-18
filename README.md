@@ -55,3 +55,9 @@ python attackmind.py -t https://target.com --all-js
 ​**🔑 Regex scans JS files for leaked API keys, tokens & credentials.**
 
 ​**🤖 Auto security analysis via Google Gemini AI.**
+
+
+## ⚠️ Disclaimer
+​
+**This tool is built strictly for educational, ethical, authorized penetration testing, and bug bounty research. Do not test targets without proper written permission.**
+
