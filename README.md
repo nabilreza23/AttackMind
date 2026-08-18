@@ -53,4 +53,5 @@ python attackmind.py -t https://target.com --all-js
 **🔍 Crawls forms, JS endpoints & Wayback archives for params (SQLi, XSS, IDOR).**
 
 ​**🔑 Regex scans JS files for leaked API keys, tokens & credentials.**
+
 ​**🤖 Auto security analysis via Google Gemini AI.**
